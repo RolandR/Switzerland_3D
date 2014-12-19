@@ -1,0 +1,54 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<title>
+			Switzerland 3D
+		</title>
+		<style>
+			*{
+				margin: 0px;
+				padding: 0px;
+			}
+
+			body, html{
+				width: 100%;
+				height: 100%;
+				overflow: hidden;
+			}
+
+			body{
+				background-color: #000000;
+			}
+
+			#canvasContainer{
+				height: 100%;
+				width: 100%;
+			}
+
+			/*#clippedBmap{
+				position: absolute;
+				top: 0px;
+				z-index: 10000;
+			}*/
+		</style>
+	</head>
+	<body>
+		<div id="canvasContainer">
+		</div>
+		<canvas id="bumpmap">Your browser can'tvas</canvas>
+		<canvas id="clippedBmap">Your browser can'tvas</canvas>
+		
+		<img src="./texture_large.jpg" id="texture"/>
+		<script type="text/javascript" src="./_js/three.min.js"></script>
+		<script type="text/javascript" src="./_js/OrbitControls.js"></script>
+		<script type="text/javascript" src="./_js/webgl.js"></script>
+		<script type="text/javascript" src="./_js/worldifier.js"></script>
+		<script type="text/javascript" src="./_data/xyzfile.js"></script>
+	</body>
+</html>
+
+<!--script type="text/javascript" src="./_js/three.min.js"></script-->
+<!--script type="text/javascript" src="./_js/OrbitControls.js"></script-->
+<!--script type="text/javascript" src="./_js/webgl.js"></script-->
+

@@ -19,36 +19,76 @@
 
 			body{
 				background-color: #000000;
+				font-family: sans-serif;
+				background-image: url(oberhofen.png);
+				background-position: center;
+				background-repeat: no-repeat;
 			}
-
-			#canvasContainer{
-				height: 100%;
-				width: 100%;
+			
+			#container{
+				margin: 100px auto;
+				max-width: 500px;
+				text-align: center;
+				background-color: rgba(255, 255, 255, 0.8);
+				padding: 30px;
+				border-radius: 10px;
+				border: 1px #000000 solid;
+				box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.2);
+				line-height: 25px;
 			}
-
-			/*#clippedBmap{
+			
+			h1{
+				font-weight: normal;
+			}
+			
+			a.fancy{
+				text-decoration: none;
+				background: linear-gradient(to bottom, rgb(100, 200, 100), rgb(100, 180, 100));
+				padding: 7px 10px;
+				border: 1px rgb(50, 100, 50) solid;
+				color: #FFFFFF;
+				text-shadow: 1px 1px 0px rgba(0, 0, 0, 0.6);
+			}
+			
+			a.fancy:hover{
+				background: linear-gradient(to bottom, rgb(120, 220, 120), rgb(100, 180, 100));
+			}
+			
+			a{
+				color: #0099DD;
+				text-decoration: none;
+			}
+			
+			a:hover{
+				text-decoration: underline;
+			}
+			
+			#copyright{
+				display: block;
+				text-align: right;
+				line-height: 1.2em;
 				position: absolute;
-				top: 0px;
-				z-index: 10000;
-			}*/
+				bottom: 0px;
+				right: 0px;
+				background-color: rgba(255, 255, 255, 1);
+				border-top: 1px #000000 solid;
+				border-left: 1px #000000 solid;
+				padding: 10px;
+			}
 		</style>
 	</head>
 	<body>
-		<div id="canvasContainer">
+		<div id="container">
+			<h1>Switzerland 3D</h1>
+			<br />
+			This will download quite a bit of data (around 50MB).<br />
+			It's not recommended to view this on mobile devices.<br />
+			<br />
+			<a class="fancy" href="./render.html">Continue</a>
 		</div>
-		<canvas id="bumpmap">Your browser can'tvas</canvas>
-		<canvas id="clippedBmap">Your browser can'tvas</canvas>
-		
-		<img src="./texture_large.jpg" id="texture"/>
-		<script type="text/javascript" src="./_js/three.min.js"></script>
-		<script type="text/javascript" src="./_js/OrbitControls.js"></script>
-		<script type="text/javascript" src="./_js/webgl.js"></script>
-		<script type="text/javascript" src="./_js/worldifier.js"></script>
-		<script type="text/javascript" src="./_data/xyzfile.js"></script>
+		<div id="copyright">
+			Copyright source data: <a href="http://www.swisstopo.admin.ch/">swisstopo</a><br />
+			Code by <a href="http://rolandrytz.ch">Roland Rytz</a>
+		</div>
 	</body>
 </html>
-
-<!--script type="text/javascript" src="./_js/three.min.js"></script-->
-<!--script type="text/javascript" src="./_js/OrbitControls.js"></script-->
-<!--script type="text/javascript" src="./_js/webgl.js"></script-->
-

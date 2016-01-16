@@ -178,7 +178,7 @@ var ThreeRenderer = function(){
 		textureCanvas.getContext("2d").drawImage(textureImg, startX * textureRatioX, startY * textureRatioY, imgXSize, imgYSize, 0, 0, imgXSize, imgYSize);
 		var texture = new THREE.Texture(textureCanvas);
 		//texture.magFilter = THREE.NearestFilter;
-		//texture.minFilter = THREE.LinearMipMapLinearFilter;
+		texture.minFilter = THREE.NearestMipMapLinearFilter;
 		texture.needsUpdate = true;
 		
 		var material = new THREE.MeshPhongMaterial({

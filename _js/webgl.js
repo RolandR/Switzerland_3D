@@ -50,6 +50,7 @@ var ThreeRenderer = function(){
 		requestAnimationFrame(render);
 		
 		controls.update();
+		switzer3D.update();
 
 		renderer.render(scene, camera);
 	};
@@ -135,6 +136,10 @@ var ThreeRenderer = function(){
 		controls.update();
 
 		render();
+
+		return {
+			update: update
+		};
 		
 	}
 	

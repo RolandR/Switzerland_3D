@@ -67,13 +67,13 @@ function processFile(file){
 		World.terrain[i] = new Array(mapWidth+1);
 	}
 
-	var mapCanvas = document.getElementById('bumpmap');
+	/*var mapCanvas = document.getElementById('bumpmap');
 	var mapCanvasContext = mapCanvas.getContext('2d');
 	
 	mapCanvas.width = mapWidth;
 	mapCanvas.height = mapHeight;
 
-	heightmapImageData = mapCanvasContext.createImageData(mapCanvas.width, mapCanvas.height);
+	heightmapImageData = mapCanvasContext.createImageData(mapCanvas.width, mapCanvas.height);*/
 	
 	for(var i = 0; i < map.length; i++){
 		var x = Math.round(((map[i][0] - minimumX) / width) * mapWidth);
@@ -81,18 +81,18 @@ function processFile(file){
 
 		World.terrain[y][x] = map[i][2] / scale;
 
-		var c = Math.floor(((map[i][2] - minimumZ)/zRange)*255);
+		/*var c = Math.floor(((map[i][2] - minimumZ)/zRange)*255);
 		var a = (y * mapWidth + x) * 4;
 		heightmapImageData.data[a  ] = c;
 		heightmapImageData.data[a+1] = c;
 		heightmapImageData.data[a+2] = c;
-		heightmapImageData.data[a+3] = 255;
+		heightmapImageData.data[a+3] = 255;*/
 	}
-	mapCanvasContext.putImageData(heightmapImageData, 0, 0);
+	//mapCanvasContext.putImageData(heightmapImageData, 0, 0);
 	
 	console.log('World generated.');
 	
-	threeRenderer.buildMesh(World);
+	threeRenderer.switzer3D(World);
 	
 }
 

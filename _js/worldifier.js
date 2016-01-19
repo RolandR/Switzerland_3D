@@ -92,7 +92,7 @@ function processFile(file){
 	
 	console.log('World generated.');
 	
-	threeRenderer.switzer3D(World);
+	threeRenderer.init(World);
 	
 }
 

@@ -35,6 +35,8 @@ var ThreeRenderer = function(){
 	camera.rotation.x = 0;
 	camera.rotation.y = 0;
 	camera.rotation.z = 0;
+
+	var switzer3D;
 	
 	window.onresize = resize;
 	resize();
@@ -50,15 +52,21 @@ var ThreeRenderer = function(){
 		requestAnimationFrame(render);
 		
 		controls.update();
-		switzer3D.update();
+		if(switzer3D){
+			switzer3D.update();
+		}
 
 		renderer.render(scene, camera);
 	};
 
-	function switzer3D(world){
+	function init(world){
+		switzer3D = new Switzer3D(world);
+	}
+
+	function Switzer3D(world){
 		// We'll divide the map into chunks, so we won't have to render everything at once
-		var chunksX = 20;
-		var chunksY = 10;
+		var chunksX = 40;
+		var chunksY = 20;
 
 		var rest = world.width % chunksX;
 		world.width -= rest;
@@ -75,62 +83,90 @@ var ThreeRenderer = function(){
 		var scale = 0.2;
 
 		var chunks = [];
+		
+		for(var x = 0; x < chunksX; x++){
+			for(var y = 0; y < chunksY; y++){
+				var chunk = {
+					 x: x
+					,y: y
+					,mesh: null
+					,isBuilt: false
+					,isDisplayed: false
+				};
+
+				chunks.push(chunk);
+			}
+		}
+
+		function update(){
+
+			var targetX = Math.floor(controls.target.x / xSize / scale);
+			var targetY = 0 - Math.floor(controls.target.y / ySize / scale);
+
+			var radius = 5;
+			
+			for(var i in chunks){
+				var chunk = chunks[i];
+				var distance = Math.sqrt(Math.pow(chunk.x - targetX, 2) + Math.pow(chunk.y - targetY, 2));
+				if(distance < radius){
+					if(!chunk.isDisplayed){
+						scene.add(getMesh(chunk));
+						chunk.isDisplayed = true;
+						console.log(chunk.x, chunk.y);
+					}
+				} else {
+					if(chunk.isDisplayed){
+						scene.remove(scene.getObjectByName("chunk" + chunk.x + "_" + chunk.y));
+						deleteMesh(chunk);
+						chunk.isDisplayed = false;
+						console.log("removing", chunk.x, chunk.y);
+					}
+				}
+			}
+			
+			//var nearestX = Math.floor(controls.target.x / xSize / scale);
+			//var nearestY = 0 - Math.floor(controls.target.y / ySize / scale);
+			
+		};
 
 		function getChunkAt(x, y){
-
-			// Search existing chunks first
+			
 			for(var i in chunks){
 				if(chunks[i].x == x && chunks[i].y == y){
 					return chunks[i];
 				}
 			}
 
-			// If the chunk doesn't exist yet, build it
-			
-			var startX = x * xSize;
-			var startY = y * ySize;
-
-			var chunk = {
-				 x: x
-				,y: y
-				,mesh: buildMesh(world, xSize, ySize, scale, startX, startY, x, y)
-			};
-
-			chunks.push(chunk);
-
-			return chunk;
+			return null;
 		}
 
-		var chunk = getChunkAt(5, 3);
-		scene.add(chunk.mesh);
+		function getMesh(chunk){
 
-		chunk = getChunkAt(5, 4);
-		scene.add(chunk.mesh);
+			if(!chunk.isBuilt){
+				var startX = chunk.x * xSize;
+				var startY = chunk.y * ySize;
 
-		chunk = getChunkAt(6, 4);
-		scene.add(chunk.mesh);
+				chunk.mesh = buildMesh(world, xSize, ySize, scale, startX, startY, chunk.x, chunk.y);
+				chunk.mesh.name = "chunk" + chunk.x + "_" + chunk.y;
 
-		chunk = getChunkAt(6, 3);
-		scene.add(chunk.mesh);
+				chunk.isBuilt = true;
+			}
+			
+			return chunk.mesh;
+		}
 
-		chunk = getChunkAt(4, 4);
-		scene.add(chunk.mesh);
+		function deleteMesh(chunk){
 
-		chunk = getChunkAt(4, 3);
-		scene.add(chunk.mesh);
+			if(chunk.isBuilt){
 
-		chunk = getChunkAt(6, 5);
-		scene.add(chunk.mesh);
+				chunk.mesh.geometry.dispose();
+				chunk.mesh.material.dispose();
+				delete chunk.mesh;
 
-		chunk = getChunkAt(5, 5);
-		scene.add(chunk.mesh);
-
-		chunk = getChunkAt(4, 5);
-		scene.add(chunk.mesh);
-
-		chunk = getChunkAt(0, 0);
-
-		scene.add(chunk.mesh);
+				chunk.isBuilt = false;
+			}
+			
+		}
 
 		controls.target.set(5*xSize*scale, 0-3*ySize*scale, 0);
 		controls.update();
@@ -166,21 +202,24 @@ var ThreeRenderer = function(){
 				geometry.vertices[i].z = height * scale;
 			}
 		}
-		
-		var textureImg = document.getElementById("texture");
-		var textureRatioX = textureImg.width / world.width;
-		var textureRatioY = textureImg.height / world.height;
-		var imgXSize = textureRatioX * xSize;
-		var imgYSize = textureRatioY * ySize;
-		
-		var textureCanvas = document.createElement("canvas");
-		textureCanvas.width = imgXSize;
-		textureCanvas.height = imgYSize;
+		var textureCanvas = document.getElementById("texture_"+chunkX+"_"+chunkY);
+		if(!textureCanvas){
+			var textureImg = document.getElementById("texture");
+			var textureRatioX = textureImg.width / world.width;
+			var textureRatioY = textureImg.height / world.height;
+			var imgXSize = textureRatioX * xSize;
+			var imgYSize = textureRatioY * ySize;
+			
+			var textureCanvas = document.createElement("canvas");
+			textureCanvas.width = imgXSize;
+			textureCanvas.height = imgYSize;
+			textureCanvas.id = "texture_"+chunkX+"_"+chunkY;
 
-		// For texture debugging:
-		//document.getElementById("textures").appendChild(textureCanvas);
+			document.getElementById("textures").appendChild(textureCanvas);
+			
+			textureCanvas.getContext("2d").drawImage(textureImg, startX * textureRatioX, startY * textureRatioY, imgXSize, imgYSize, 0, 0, imgXSize, imgYSize);
+		}
 		
-		textureCanvas.getContext("2d").drawImage(textureImg, startX * textureRatioX, startY * textureRatioY, imgXSize, imgYSize, 0, 0, imgXSize, imgYSize);
 		var texture = new THREE.Texture(textureCanvas);
 		//texture.magFilter = THREE.NearestFilter;
 		texture.minFilter = THREE.NearestMipMapLinearFilter;
@@ -205,6 +244,7 @@ var ThreeRenderer = function(){
 	return {
 		 buildMesh: buildMesh
 		,switzer3D: switzer3D
+		,init: init
 	};
 }
 

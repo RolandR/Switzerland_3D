@@ -16,11 +16,11 @@ var ThreeRenderer = function(){
 	
 	var controls = new THREE.OrbitControls(camera, renderer.domElement); 
 	controls.target.set(0, 0, 0);
-	controls.maxDistance = 50;
+	controls.maxDistance = 70;
 	controls.minDistance = 0;
 	controls.update();
 	
-	//scene.fog = new THREE.Fog(skyColor, 0, 100);
+	scene.fog = new THREE.Fog(skyColor, 0, 100);
 	
 	renderer.setSize(rendererContainer.clientWidth, rendererContainer.clientHeight);
 	rendererContainer.appendChild(renderer.domElement);
@@ -31,10 +31,6 @@ var ThreeRenderer = function(){
 	//var light = new THREE.SpotLight( 0xFFFFFF, 2 );
 	//light.position.set(-150, 150 , 1000);
 	//scene.add(light);
-	
-	camera.rotation.x = 0;
-	camera.rotation.y = 0;
-	camera.rotation.z = 0;
 
 	var showCursor = false;
 
@@ -50,6 +46,7 @@ var ThreeRenderer = function(){
 	
 	window.onresize = resize;
 	resize();
+	
 	function resize(){
 		if(renderer){
 			renderer.setSize(rendererContainer.clientWidth, rendererContainer.clientHeight);
@@ -132,7 +129,7 @@ var ThreeRenderer = function(){
 					if(!chunk.isDisplayed){
 						scene.add(getMesh(chunk));
 						chunk.isDisplayed = true;
-						//console.log(chunk.x, chunk.y);
+						//console.log("adding", chunk.x, chunk.y);
 					}
 				} else {
 					if(chunk.isDisplayed){
@@ -210,6 +207,7 @@ var ThreeRenderer = function(){
 		var i;
 
 		var textureImg = document.getElementById("texture");
+		var texturesContainer = document.getElementById("textures");
 		var textureRatioX = textureImg.width / world.oldWidth;
 		var textureRatioY = textureImg.height / world.oldHeight;
 		var imgXSize = textureRatioX * xSize;
@@ -230,12 +228,13 @@ var ThreeRenderer = function(){
 					}
 
 					i = y * (xSize+1) + x;
-
-					//console.log(i);
+					
 					geometry.vertices[i].z = height * scale;
 				}
 			}
+			
 			var textureCanvas = document.getElementById("texture_"+chunkX+"_"+chunkY);
+			//var textureCanvas;
 			if(!textureCanvas){
 								
 				var textureCanvas = document.createElement("canvas");
@@ -243,9 +242,11 @@ var ThreeRenderer = function(){
 				textureCanvas.height = imgYSize;
 				textureCanvas.id = "texture_"+chunkX+"_"+chunkY;
 
-				document.getElementById("textures").appendChild(textureCanvas);
+				texturesContainer.appendChild(textureCanvas);
 				
 				textureCanvas.getContext("2d").drawImage(textureImg, startX * textureRatioX, startY * textureRatioY, imgXSize, imgYSize, 0, 0, imgXSize, imgYSize);
+			} else {
+				//console.log("Reusing texture_"+chunkX+"_"+chunkY);
 			}
 			
 			var texture = new THREE.Texture(textureCanvas);

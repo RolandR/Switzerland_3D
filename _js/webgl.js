@@ -19,7 +19,7 @@ var ThreeRenderer = function(){
 	controls.maxDistance = 50;
 	controls.minDistance = 0;
 	controls.update();
-		
+	
 	//scene.fog = new THREE.Fog(skyColor, 0, 100);
 	
 	renderer.setSize(rendererContainer.clientWidth, rendererContainer.clientHeight);
@@ -35,6 +35,16 @@ var ThreeRenderer = function(){
 	camera.rotation.x = 0;
 	camera.rotation.y = 0;
 	camera.rotation.z = 0;
+
+	var showCursor = false;
+
+	if(showCursor){
+		var cursor = new THREE.Mesh(
+			 new THREE.SphereGeometry( 2, 8, 8 )
+			,new THREE.MeshBasicMaterial( {color: 0xff0000} )
+		);
+		scene.add(cursor);
+	}
 
 	var switzer3D;
 	
@@ -56,6 +66,12 @@ var ThreeRenderer = function(){
 			switzer3D.update();
 		}
 
+		if(showCursor){
+			cursor.position.x = controls.target.x;
+			cursor.position.y = controls.target.y;
+			cursor.position.z = controls.target.z;
+		}
+
 		renderer.render(scene, camera);
 	};
 
@@ -65,12 +81,14 @@ var ThreeRenderer = function(){
 
 	function Switzer3D(world){
 		// We'll divide the map into chunks, so we won't have to render everything at once
-		var chunksX = 40;
-		var chunksY = 20;
+		var chunksX = 200;
+		var chunksY = Math.round(chunksX/world.width * world.height);
 
+		world.oldWidth = world.width; // We need that later for texture generation
 		var rest = world.width % chunksX;
 		world.width -= rest;
 
+		world.oldHeight = world.height; // We need that later for texture generation
 		rest = world.height % chunksY;
 		world.height -= rest;
 
@@ -103,23 +121,23 @@ var ThreeRenderer = function(){
 			var targetX = Math.floor(controls.target.x / xSize / scale);
 			var targetY = 0 - Math.floor(controls.target.y / ySize / scale);
 
-			var radius = 5;
+			var radius = chunksX / 12;
 			
 			for(var i in chunks){
 				var chunk = chunks[i];
-				var distance = Math.sqrt(Math.pow(chunk.x - targetX, 2) + Math.pow(chunk.y - targetY, 2));
+				var distance = Math.sqrt(Math.pow(chunk.x - 0.5 - targetX, 2) + Math.pow(chunk.y + 0.5 - targetY, 2));
 				if(distance < radius){
 					if(!chunk.isDisplayed){
 						scene.add(getMesh(chunk));
 						chunk.isDisplayed = true;
-						console.log(chunk.x, chunk.y);
+						//console.log(chunk.x, chunk.y);
 					}
 				} else {
 					if(chunk.isDisplayed){
 						scene.remove(scene.getObjectByName("chunk" + chunk.x + "_" + chunk.y));
 						deleteMesh(chunk);
 						chunk.isDisplayed = false;
-						console.log("removing", chunk.x, chunk.y);
+						//console.log("removing", chunk.x, chunk.y);
 					}
 				}
 			}
@@ -168,7 +186,7 @@ var ThreeRenderer = function(){
 			
 		}
 
-		controls.target.set(5*xSize*scale, 0-3*ySize*scale, 0);
+		controls.target.set((chunksX/2)*xSize*scale, 0-(chunksY/2)*ySize*scale, 0);
 		controls.update();
 
 		render();
@@ -186,17 +204,21 @@ var ThreeRenderer = function(){
 
 		var x;
 		var y;
+		var height = 0;
+		var row;
+		var i;
+		
 		for(y = 0; y <= ySize; y++){
 			for(x = 0; x <= xSize; x++){
 
-				var height = 0;
-				var row = world.terrain[y + startY - 1];
+				height = 0;
+				row = world.terrain[y + startY - 1];
 
 				if(row){
 					height = row[x + startX - 1];
 				}
 
-				var i = y * (xSize+1) + x;
+				i = y * (xSize+1) + x;
 
 				//console.log(i);
 				geometry.vertices[i].z = height * scale;
@@ -205,8 +227,8 @@ var ThreeRenderer = function(){
 		var textureCanvas = document.getElementById("texture_"+chunkX+"_"+chunkY);
 		if(!textureCanvas){
 			var textureImg = document.getElementById("texture");
-			var textureRatioX = textureImg.width / world.width;
-			var textureRatioY = textureImg.height / world.height;
+			var textureRatioX = textureImg.width / world.oldWidth;
+			var textureRatioY = textureImg.height / world.oldHeight;
 			var imgXSize = textureRatioX * xSize;
 			var imgYSize = textureRatioY * ySize;
 			
@@ -221,16 +243,23 @@ var ThreeRenderer = function(){
 		}
 		
 		var texture = new THREE.Texture(textureCanvas);
-		//texture.magFilter = THREE.NearestFilter;
-		texture.minFilter = THREE.NearestMipMapLinearFilter;
+		texture.magFilter = THREE.LinearFilter;
+		texture.minFilter = THREE.LinearFilter;
 		texture.needsUpdate = true;
 		
 		var material = new THREE.MeshPhongMaterial({
 			 map: texture
+			//,wireframe: true
 			//,bumpMap: texture
 			//,bumpScale: 10
 			,shininess: 1
-		});		
+		});
+
+		//geometry.mergeVertices();
+		//geometry.computeVertexNormals();
+		//changeLOD(0.3, geometry);
+		
+		assignUVs(geometry);
 		
 		var plane = new THREE.Mesh(geometry, material);
 		plane.material.side = THREE.DoubleSide;

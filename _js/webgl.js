@@ -100,6 +100,8 @@ var ThreeRenderer = function(){
 
 		var scale = 0.2;
 
+		var meshBuilder = new MeshBuilder(world, xSize, ySize, scale);
+
 		var chunks = [];
 		
 		for(var x = 0; x < chunksX; x++){
@@ -164,7 +166,7 @@ var ThreeRenderer = function(){
 				var startX = chunk.x * xSize;
 				var startY = chunk.y * ySize;
 
-				chunk.mesh = buildMesh(world, xSize, ySize, scale, startX, startY, chunk.x, chunk.y);
+				chunk.mesh = meshBuilder.buildMesh(startX, startY, chunk.x, chunk.y);
 				chunk.mesh.name = "chunk" + chunk.x + "_" + chunk.y;
 
 				chunk.isBuilt = true;
@@ -196,83 +198,89 @@ var ThreeRenderer = function(){
 		};
 		
 	}
-	
-	function buildMesh(world, xSize, ySize, scale, startX, startY, chunkX, chunkY){
-		
-		
-		var geometry = new THREE.PlaneGeometry(xSize * scale, ySize * scale, xSize, ySize);
+
+	function MeshBuilder(world, xSize, ySize, scale){
+
+		var baseGeometry = new THREE.PlaneGeometry(xSize * scale, ySize * scale, xSize, ySize);
 
 		var x;
 		var y;
 		var height = 0;
 		var row;
 		var i;
+
+		var textureImg = document.getElementById("texture");
+		var textureRatioX = textureImg.width / world.oldWidth;
+		var textureRatioY = textureImg.height / world.oldHeight;
+		var imgXSize = textureRatioX * xSize;
+		var imgYSize = textureRatioY * ySize;
 		
-		for(y = 0; y <= ySize; y++){
-			for(x = 0; x <= xSize; x++){
+		function buildMesh(startX, startY, chunkX, chunkY){
+			
+			var geometry = baseGeometry.clone();
+			
+			for(y = 0; y <= ySize; y++){
+				for(x = 0; x <= xSize; x++){
 
-				height = 0;
-				row = world.terrain[y + startY - 1];
+					height = 0;
+					row = world.terrain[y + startY - 1];
 
-				if(row){
-					height = row[x + startX - 1];
+					if(row){
+						height = row[x + startX - 1];
+					}
+
+					i = y * (xSize+1) + x;
+
+					//console.log(i);
+					geometry.vertices[i].z = height * scale;
 				}
-
-				i = y * (xSize+1) + x;
-
-				//console.log(i);
-				geometry.vertices[i].z = height * scale;
 			}
-		}
-		var textureCanvas = document.getElementById("texture_"+chunkX+"_"+chunkY);
-		if(!textureCanvas){
-			var textureImg = document.getElementById("texture");
-			var textureRatioX = textureImg.width / world.oldWidth;
-			var textureRatioY = textureImg.height / world.oldHeight;
-			var imgXSize = textureRatioX * xSize;
-			var imgYSize = textureRatioY * ySize;
+			var textureCanvas = document.getElementById("texture_"+chunkX+"_"+chunkY);
+			if(!textureCanvas){
+								
+				var textureCanvas = document.createElement("canvas");
+				textureCanvas.width = imgXSize;
+				textureCanvas.height = imgYSize;
+				textureCanvas.id = "texture_"+chunkX+"_"+chunkY;
+
+				document.getElementById("textures").appendChild(textureCanvas);
+				
+				textureCanvas.getContext("2d").drawImage(textureImg, startX * textureRatioX, startY * textureRatioY, imgXSize, imgYSize, 0, 0, imgXSize, imgYSize);
+			}
 			
-			var textureCanvas = document.createElement("canvas");
-			textureCanvas.width = imgXSize;
-			textureCanvas.height = imgYSize;
-			textureCanvas.id = "texture_"+chunkX+"_"+chunkY;
-
-			document.getElementById("textures").appendChild(textureCanvas);
+			var texture = new THREE.Texture(textureCanvas);
+			texture.magFilter = THREE.LinearFilter;
+			texture.minFilter = THREE.LinearFilter;
+			texture.needsUpdate = true;
 			
-			textureCanvas.getContext("2d").drawImage(textureImg, startX * textureRatioX, startY * textureRatioY, imgXSize, imgYSize, 0, 0, imgXSize, imgYSize);
+			var material = new THREE.MeshPhongMaterial({
+				 map: texture
+				//,wireframe: true
+				//,bumpMap: texture
+				//,bumpScale: 10
+				,shininess: 1
+			});
+
+			//geometry.mergeVertices();
+			//geometry.computeVertexNormals();
+			//changeLOD(0.3, geometry);
+			
+			assignUVs(geometry);
+			
+			var plane = new THREE.Mesh(geometry, material);
+			plane.material.side = THREE.DoubleSide;
+			
+			plane.position.x = chunkX * xSize * scale;
+			plane.position.y = 0 - chunkY * ySize * scale;
+
+			return plane;
 		}
-		
-		var texture = new THREE.Texture(textureCanvas);
-		texture.magFilter = THREE.LinearFilter;
-		texture.minFilter = THREE.LinearFilter;
-		texture.needsUpdate = true;
-		
-		var material = new THREE.MeshPhongMaterial({
-			 map: texture
-			//,wireframe: true
-			//,bumpMap: texture
-			//,bumpScale: 10
-			,shininess: 1
-		});
 
-		//geometry.mergeVertices();
-		//geometry.computeVertexNormals();
-		//changeLOD(0.3, geometry);
-		
-		assignUVs(geometry);
-		
-		var plane = new THREE.Mesh(geometry, material);
-		plane.material.side = THREE.DoubleSide;
-		
-		plane.position.x = chunkX * xSize * scale;
-		plane.position.y = 0 - chunkY * ySize * scale;
-
-		return plane;
+		return {buildMesh: buildMesh};
 	}
 
 	return {
-		 buildMesh: buildMesh
-		,switzer3D: switzer3D
+		 switzer3D: switzer3D
 		,init: init
 	};
 }
